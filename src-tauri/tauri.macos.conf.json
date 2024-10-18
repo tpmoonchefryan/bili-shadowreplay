@@ -10,10 +10,7 @@
         "height": 600,
         "transparent": false,
         "decorations": true,
-        "theme": "Light",
-        "windowEffects": {
-          "effects": ["tabbed", "mica"]
-        }
+        "theme": "Light"
       }
     ]
   }
