@@ -1,0 +1,21 @@
+{
+  "productName": "bili-shadowreplay-cuda",
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "fullscreen": false,
+        "resizable": true,
+        "title": "BiliBili ShadowReplay",
+        "width": 1300,
+        "height": 600,
+        "transparent": false,
+        "decorations": true,
+        "theme": "Light"
+      }
+    ]
+  },
+  "bundle": {
+    "resources": ["cudart64*.dll", "cublas64*.dll", "cublasLt64*.dll"]
+  }
+}
