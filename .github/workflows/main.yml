@@ -1,9 +1,16 @@
-name: Release
+# Unofficial build train for the joi-button branch (PR Xinrea/bili-shadowreplay#293).
+#
+# This file lives ONLY on `unofficial/joi-button-build` and is deliberately kept
+# off the PR branch, so the pull request carries no CI changes. It differs from
+# upstream's Release workflow in three places, all marked UNOFFICIAL below:
+# the platform matrix, the trigger, and the release metadata.
+name: Unofficial Release (joi-button)
 on:
-  workflow_dispatch:
   push:
     tags:
-      - "v*"
+      # UNOFFICIAL: upstream matches "v*". Narrowed so a plain upstream tag
+      # sitting in this fork can never start this train by accident.
+      - "v*-joi-button.*"
 jobs:
   publish-tauri:
     permissions:
@@ -18,16 +25,9 @@ jobs:
           - platform: "macos-latest" # for Apple silicon macs.
             args: "--target aarch64-apple-darwin"
             target: "aarch64-apple-darwin"
-          - platform: "ubuntu-22.04"
-            args: ""
-            target: ""
-          # CUDA 13.1 nvcc only supports MSVC from VS 2019-2022. The
-          # windows-latest image migrated to VS 2026 in June 2026, which
-          # nvcc rejects, so pin the CUDA build to windows-2022.
-          - platform: "windows-2022"
-            args: "--features cuda"
-            features: "cuda"
-            target: ""
+          # UNOFFICIAL: only macOS and Windows installers were asked for, so the
+          # ubuntu-22.04 and windows-2022 CUDA legs are dropped. The CUDA leg is
+          # the expensive one (CUDA toolkit + a whisper.cpp CUDA compile).
           - platform: "windows-latest"
             args: ""
             features: "cpu"
@@ -139,11 +139,18 @@ jobs:
           # When unset, Sentry is disabled in the build instead of using a default.
           SENTRY_ENDPOINT: ${{ secrets.SENTRY_ENDPOINT }}
         with:
-          tagName: v__VERSION__
-          releaseName: "BiliBili ShadowReplay v__VERSION__"
-          releaseBody: "> [!NOTE]\n> 如果你是第一次下载安装，请参考 [安装准备](https://bsr.xinrea.cn/getting-started/installation/desktop.html) 选择合适的版本。\n> Changelog: https://github.com/Xinrea/bili-shadowreplay/compare/${{ steps.get_previous_tag.outputs.previous_tag }}...${{ steps.get_previous_tag.outputs.current_tag }}"
-          releaseDraft: true
-          prerelease: false
+          # UNOFFICIAL: attach to the tag that triggered this run rather than
+          # deriving v__VERSION__ from package.json — that would resolve to
+          # v2.21.0, which already exists in this fork and points at upstream's
+          # release commit (960f5c2), not at this branch.
+          tagName: ${{ github.ref_name }}
+          releaseName: "非官方构建 · 轴伊按钮投稿 (${{ github.ref_name }})"
+          releaseBody: "> [!WARNING]\n> 这是**非官方构建**，由 [Xinrea/bili-shadowreplay#293](https://github.com/Xinrea/bili-shadowreplay/pull/293) 的分支打包，**不是上游发布**，上游不对它负责。官方版本请到 [Xinrea/bili-shadowreplay/releases](https://github.com/Xinrea/bili-shadowreplay/releases) 下载。\n\n## 这个构建是什么\n\n上游 v2.21.0（`960f5c2`）之上加了两个提交，内容是「轴伊按钮账号」类型与「投稿切片到轴伊按钮站点」。除此之外与上游 v2.21.0 一致。\n\n## 装哪个\n\n| 平台 | 文件 |\n| --- | --- |\n| macOS Apple Silicon | `bili-shadowreplay_2.21.0_aarch64.dmg` |\n| macOS Intel | `bili-shadowreplay_2.21.0_x64.dmg` |\n| Windows | `bili-shadowreplay-cpu_2.21.0_x64-setup.exe`（或 `.msi`） |\n\n不含 Linux 与 Windows CUDA 版本。**文件名里的版本号与上游 v2.21.0 完全相同**——应用版本确实还是 2.21.0，请靠下载来源区分，别把它和官方包混在一个目录里。\n\n## 这些包没有签名\n\n**macOS**：首次打开会被 Gatekeeper 拦下，提示「已损坏，无法打开」或「无法验证开发者」。装好后在终端执行一次：\n\n```\nxattr -cr /Applications/bili-shadowreplay.app\n```\n\n**Windows**：SmartScreen 会弹「Windows 已保护你的电脑」，点「更多信息」再点「仍要运行」。\n\n## 首次使用\n\n环境准备参考上游的 [安装准备](https://bsr.xinrea.cn/getting-started/installation/desktop.html)。轴伊按钮功能的用法见仓库内 `docs/usage/features/joi-button.md`：**账号 → 添加账号 → 轴伊按钮**，填入自托管站点地址完成弹幕口令验证，之后在任意切片的**快速投稿**里选「轴伊按钮」。"
+          # UNOFFICIAL: upstream publishes a non-prerelease draft for a human to
+          # review and release. This one goes out directly and stays flagged as
+          # a prerelease, so GitHub never serves it as this fork's "latest".
+          releaseDraft: false
+          prerelease: true
           args: ${{ matrix.args }} ${{ matrix.features == 'cuda' && '--config src-tauri/tauri.windows.cuda.conf.json' || '' }}
 
       - name: Generate dSYM for Sentry (macOS only)
