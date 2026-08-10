@@ -4,7 +4,13 @@ on:
   workflow_dispatch:
   push:
     tags:
+      # UNOFFICIAL: upstream matches "v*". On this fork-only branch the
+      # unofficial installer tags are named v<version>-joi-button.<n>, which
+      # "v*" also matches — so tagging a desktop build was starting a container
+      # publish nobody asked for. Excluded here; upstream's pattern is unchanged
+      # on every other branch.
       - "v*"
+      - "!v*-joi-button.*"
 
 env:
   REGISTRY: ghcr.io
